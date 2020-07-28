@@ -1,0 +1,932 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION IDLEBP_FINISHBP">
+    <function name="IDLEBP_FINISHBP" type="NULL">
+      <body><![CDATA[declare
+begin 
+
+case when '6FF4CBBC087E4A61A83232775A3B17CE'::character varying=(select ad_client_id from idlebp_bp_source limit 1)::character varying
+then IDLEBP_FINISHBP2();
+else
+ --******************set null on all blank fields
+ update idlebp_bp_source
+set new_reg_no= case when new_reg_no='' or new_reg_no='
+' then null else new_reg_no end
+   ,issuer= case when issuer='' or issuer='  ' then null else issuer end
+   ,reg_status= case when reg_status='' or reg_status='
+' then null else reg_status end
+   ,card_type= case when card_type='' or card_type='
+' then null else card_type end
+   ,reg_date= case when reg_date='' or reg_date='  ' then null else reg_date end
+   ,reg_expirey_date= case when reg_expirey_date='' or reg_expirey_date='
+' then null else reg_expirey_date end
+   ,is_pr_default= case when is_pr_default='' or is_pr_default='
+' then null else is_pr_default end
+   ,bp_type= case when bp_type='' or bp_type='  ' then null else bp_type end
+   ,bp_name= case when bp_name='' or bp_name='  ' then null else bp_name end
+   ,bp_category= case when bp_category='' or bp_category='
+' then null else bp_category end
+   ,bp_status= case when bp_status='' or bp_status='
+' then null else bp_status end
+   ,bp_status_date= case when bp_status_date='' or bp_status_date='
+' then null else bp_status_date end
+   ,notes= case when notes='' or notes=' ' then null else notes end
+   ,bp_flag= case when bp_flag='' or bp_flag='  ' then null else bp_flag end
+   ,custom_field_1= case when custom_field_1='' or custom_field_1='
+' then null else custom_field_1 end
+   ,custom_field_2= case when custom_field_2='' or custom_field_2='
+' then null else custom_field_2 end
+   ,custom_field_3= case when custom_field_3='' or custom_field_3='
+' then null else custom_field_3 end
+   ,surname= case when surname='' or surname='  ' then null else surname end
+   ,first_name= case when first_name='' or first_name='
+' then null else first_name end
+   ,nid= case when nid='' or nid=' ' then null else nid end
+   ,date_of_birth= case when date_of_birth='' or date_of_birth='
+' then null else date_of_birth end
+   ,gender= case when gender='' or gender='  ' then null else gender end
+   ,is_primary_person= case when is_primary_person='' or is_primary_person='
+' then null else is_primary_person end
+   ,production_cycle= case when production_cycle='' or production_cycle='
+' then null else production_cycle end
+   ,pcstatus= case when pcstatus='' or pcstatus='  ' then null else pcstatus end
+   ,pcstatus_date= case when pcstatus_date='' or pcstatus_date='
+' then null else pcstatus_date end
+   ,is_pc_default= case when is_pc_default='' or is_pc_default='
+' then null else is_pc_default end
+   ,producer_model= case when producer_model='' or producer_model='
+' then null else producer_model end
+   ,producer_type= case when producer_type='' or producer_type='
+' then null else producer_type end
+   ,production_scheme= case when production_scheme='' or production_scheme='
+' then null else production_scheme end
+   ,community_group= case when community_group='' or community_group='
+' then null else community_group end
+   ,town= case when town='' or town=' ' then null else town end
+   ,address_description= case when address_description='' or address_description='
+' then null else address_description end
+   ,directions= case when directions='' or directions='
+' then null else directions end
+   ,gps_location= case when gps_location='' or gps_location='
+' then null else gps_location end
+   ,cell_phone= case when cell_phone='' or cell_phone='
+' then null else cell_phone end
+   ,land_line= case when land_line='' or land_line='
+' then null else land_line end
+   ,email= case when email='' or email=' ' then null else email end
+   ,trading_account= case when trading_account='' or trading_account='
+' then null else trading_account end
+   ,tastatus= case when tastatus='' or tastatus='  ' then null else tastatus end
+   ,tastatus_date= case when tastatus_date='' or tastatus_date='
+' then null else tastatus_date end
+   ,is_ta_default= case when is_ta_default='' or is_ta_default='
+' then null else is_ta_default end
+   ,bank= case when bank='' or bank=' ' then null else bank end
+   ,branch= case when branch='' or branch='  ' then null else branch end
+   ,branch_code= case when branch_code='' or branch_code='
+' then null else branch_code end
+   ,bank_acc_name= case when bank_acc_name='' or bank_acc_name='
+' then null else bank_acc_name end
+   ,bank_acc_number= case when bank_acc_number='' or bank_acc_number='
+' then null else bank_acc_number end
+   ,bank_acc_curr= case when bank_acc_curr='' or bank_acc_curr='
+' then null else bank_acc_curr end
+   ,is_ba_default= case when is_ba_default='' or is_ba_default='
+' then null else is_ba_default end
+	,ad_org_id='0';
+   
+  --******************Update BP value
+  update public.c_bpartner as bp
+  set value=bps.new_reg_no
+  from public.idlebp_bp_source as bps
+  where bps.reg_no =bp.value
+   and bps.new_reg_no is not null 
+   and bps.new_reg_no != '';
+  -- ********************************Update BP Header
+  update public.c_bpartner as bp
+  set  ad_org_id=bps.ad_org_id,
+	updated=bps.updated,
+       updatedby=bps.updatedby,
+       name=case when bps.bp_name is not null 
+              then  initcap(bps.bp_name)
+            else bp.name end,
+    c_bp_group_id = case when bpg.c_bp_group_id is not null
+                  then bpg.c_bp_group_id
+  else bp.c_bp_group_id end,
+       em_synpreg_clstat= case when lrcs.value is not null 
+                           then lrcs.value
+                         else bp.em_synpreg_clstat end,
+       em_synpreg_status_date = case when bps.bp_status_date is not null and bps.bp_status_date!=''
+                                    then TO_DATE(bps.bp_status_date, 'DD/MM/YYYY')
+                                else bp.em_synpreg_status_date end,
+       em_synpreg_notes = case when bps.notes is not null and bps.notes!=''
+                                  then left(bps.notes,255) 
+                             else bp.em_synpreg_notes end,
+       em_synpreg_flag = case when lrfl.value is not null 
+                               then lrfl.value
+                             else bp.em_synpreg_flag end ,
+       em_synpreg_custom_field1= case when bps.custom_field_1 is not null and bps.custom_field_1!=''
+                                    then left(bps.custom_field_1,60)
+                                  else  bp.em_synpreg_custom_field1 end,                
+       em_synpreg_custom_field2= case when bps.custom_field_2 is not null and bps.custom_field_2!=''
+                                    then left(bps.custom_field_2,60)
+                                  else  bp.em_synpreg_custom_field2 end, 
+       em_synpreg_custom_field3= case when bps.custom_field_3 is not null and bps.custom_field_3!=''
+                                    then left(bps.custom_field_3,60) 
+                                    else bp.em_synpreg_custom_field3 end,
+   m_pricelist_id  = case when bp.m_pricelist_id is null then 
+                          sp.m_pricelist_id else bp.m_pricelist_id end,
+   po_pricelist_id  = case when bp.po_pricelist_id is null then 
+                          pp.m_pricelist_id else bp.po_pricelist_id end,
+   fin_paymentmethod_id= case when bp.fin_paymentmethod_id is null
+                            then pm.fin_paymentmethod_id
+                          else bp.fin_paymentmethod_id end,
+   po_paymentmethod_id= case when bp.po_paymentmethod_id is null
+                            then pm.fin_paymentmethod_id
+                          else bp.po_paymentmethod_id end,
+   c_paymentterm_id= case when bp.c_paymentterm_id is null
+                        then pt.c_paymentterm_id
+                        else bp.c_paymentterm_id end,
+   po_paymentterm_id= case when bp.po_paymentterm_id is null
+                        then pt.c_paymentterm_id
+                        else bp.po_paymentterm_id end,
+   bp_currency_id=case when cr.c_currency_id is not null
+                    then cr.c_currency_id
+    else bp.bp_currency_id end
+                                     
+  from public.idlebp_bp_source as bps
+  left join public.m_pricelist as sp on sp.isdefault='Y' and sp.issopricelist='Y' 
+  left join public.m_pricelist as pp on pp.issopricelist='N' --and  pp.isdefault='N'
+  left join public.c_bp_group as bpg on upper(bps.bp_category) = upper(bpg.name)
+  left join public.c_currency as cr on upper(bps.Bank_Acc_Curr) =upper(cr.iso_code)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Client Status List'
+             ) as lrcs on lrcs.name=bps.bp_status
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'SYNPREG FLAG REF'
+             ) as lrfl on lrfl.name=bps.bp_flag
+  left join (select fin_paymentmethod_id
+             from public.fin_paymentmethod 
+               where  isactive='Y' 
+              order by created desc 
+              limit 1) as pm on 1=1
+  left join(select c_paymentterm_id
+            from public.c_paymentterm 
+            where  isactive='Y' and isdefault='Y'
+            limit 1) as pt on 1=1
+  where coalesce(bps.new_reg_no,bps.reg_no) =bp.value;
+  --*************************************Create BP Header
+  insert into public.c_bpartner(c_bpartner_id,
+    ad_client_id,
+    ad_org_id,
+    isactive,
+    created,
+    createdby,
+    updated,
+    updatedby,
+    em_synpreg_clstat,
+    em_synpreg_status_date,
+    em_synpreg_notes,
+    em_synpreg_flag,
+    em_synpreg_custom_field1,
+    em_synpreg_custom_field2,
+    em_synpreg_custom_field3,
+    value,
+    name,
+    issummary,
+    c_bp_group_id,
+  isonetime,
+  isprospect,
+  isvendor,
+  iscustomer,
+  isemployee,
+  issalesrep,
+  showpriceinorder,
+  customer_blocking,
+  vendor_blocking,
+  so_payment_blocking,
+  po_payment_blocking,
+  so_invoice_blocking,
+      po_invoice_blocking,
+  so_order_blocking,
+  po_order_blocking,
+  so_goods_blocking,
+  po_goods_blocking,
+  iscashvat,
+  update_currency,
+  em_synpreg_isprod,
+  m_pricelist_id,
+  po_pricelist_id,
+  fin_paymentmethod_id,
+  po_paymentmethod_id,
+  c_paymentterm_id,
+  po_paymentterm_id,
+  bp_currency_id)
+  select public.get_uuid() as c_bpartner_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.isactive,
+     bps.created,
+     bps.createdby,
+     bps.updated,
+     bps.updatedby,
+     lrcs.value  as em_synpreg_clstat,
+    TO_DATE(bps.bp_status_date, 'DD/MM/YYYY') as em_synpreg_status_date,
+    left(bps.notes,255) as em_synpreg_notes,
+    lrfl.value as em_synpreg_flag,
+    left(bps.custom_field_1,60) as synpreg_custom_field1,
+    left(bps.custom_field_2,60) as synpreg_custom_field2,
+    left(bps.custom_field_3,60) as synpreg_custom_field3,
+    coalesce(bps.new_reg_no,bps.reg_no) as value,
+    initcap(bps.bp_name) as name,
+     'N' as issummary,
+   bpg.c_bp_group_id as c_bp_group_id,
+  'N' as isonetime,
+  'N' as isprospect,
+  'Y' as isvendor,
+  'Y' as iscustomer,
+  'N' as isemployee,
+  'N' as issalesrep,
+  'Y' as showpriceinorder,
+  'N' as customer_blocking,
+  'N' as vendor_blocking,
+  'N' as so_payment_blocking,
+  'Y' as po_payment_blocking,
+  'Y' as so_invoice_blocking,
+  'Y' as po_invoice_blocking,
+  'Y' as so_order_blocking,
+  'Y' as po_order_blocking,
+  'Y' as so_goods_blocking,
+  'N' as po_goods_blocking,
+  'N' as iscashvat,
+  'N' as update_currency,
+  'Y' as em_synpreg_isprod,
+  sp.m_pricelist_id,
+  pp.m_pricelist_id as po_pricelist_id,
+  pm.fin_paymentmethod_id,
+  pm.fin_paymentmethod_id as po_paymentmethod_id,
+  pt.c_paymentterm_id,
+  pt.c_paymentterm_id as po_paymentterm_id,
+  cr.c_currency_id as bp_currency_id
+  from public.idlebp_bp_source as bps
+  left join public.c_bpartner as bp on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(bp.value)
+  inner join public.c_bp_group as bpg on UPPER(bps.bp_category) = UPPER(bpg.name)
+  left join public.m_pricelist as sp on sp.isdefault='Y' and sp.issopricelist='Y' 
+  left join public.m_pricelist as pp on pp.issopricelist='N' and pp.m_pricelist_id='CB95E8FEB133431488DF81A5584B2363' --and  pp.isdefault='N' 
+  left join public.c_currency as cr on upper(bps.Bank_Acc_Curr) =upper(cr.iso_code)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Client Status List'
+             ) as lrcs on UPPER(lrcs.name)=UPPER(bps.bp_status)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'SYNPREG FLAG REF'
+             ) as lrfl on UPPER(lrfl.name)=UPPER(bps.bp_flag)
+  left join (select fin_paymentmethod_id
+  from public.fin_paymentmethod 
+  where  isactive='Y' 
+  order by created desc 
+  limit 1) as pm on 1=1
+  left join(select c_paymentterm_id
+  from public.c_paymentterm 
+  where  isactive='Y' and isdefault='Y'
+  limit 1) as pt on 1=1
+  where bps.bp_name is not null 
+  and bp.value is null;
+  --**********************************************Update bank acc
+  update public.c_bp_bankaccount as ba
+  set updated=bps.updated,
+      updatedby=bps.updatedby,
+  bank_name=bps.bank_acc_name,
+  em_synpreg_bank_id=c.synpreg_bank_id,
+ em_synpreg_branchcode=d.synpreg_bankbranch_id,
+  em_synpreg_bankbranch_id= case when d.synpreg_bankbranch_id is not null 
+                                 then d.synpreg_bankbranch_id 
+                                else ba.em_synpreg_bankbranch_id end,
+      a_name= case when bps.bank_acc_name is not null and bps.bank_acc_name!=''
+              then bps.bank_acc_name 
+              else ba.a_name end,
+      accountno= case when bps.bank_acc_number is not null and  bps.bank_acc_number!=''
+                  then bps.bank_acc_number
+                 else ba.accountno end,
+      em_synpreg_c_currency_id=  coalesce(e.c_currency_id,'100'),
+      em_synpreg_isdefault= case when bps.is_ba_default is not null and bps.is_ba_default!=''
+                              then (CASE UPPER(bps.is_ba_default) WHEN 'YES' THEN 'Y'
+                                                              WHEN '1' THEN 'Y' 
+                                                              WHEN 'DEFAULT' THEN 'Y' 
+                                                              ELSE 'N' END)
+                              else ba.em_synpreg_isdefault end
+     
+  from public.idlebp_bp_source as bps
+   join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value) and b.em_synpreg_isprod='Y'
+   join public.synpreg_bank as c on  UPPER(bps.bank)= UPPER(c.bank_name)
+   left join public.synpreg_bankbranch as d on UPPER(bps.branch) = UPPER(d.branch) and c.synpreg_bank_id=d.synpreg_bank_id
+   left join public.c_currency as e on upper(bps.bank_acc_curr)=upper(e.iso_code)
+  where bps.bank is not null
+     and ba.c_bpartner_id=b.c_bpartner_id
+	 and ba.accountno=bps.bank_acc_number ;
+  --**********************Create Bank acc
+  insert into public.c_bp_bankaccount
+  (           c_bp_bankaccount_id,
+      ad_client_id,
+      ad_org_id,
+      created,
+      updated,
+      isactive,
+      createdby,
+      updatedby,
+      c_bpartner_id,
+      bankformat,
+      em_synpreg_bank_id,
+    em_synpreg_branchcode,
+      bank_name,
+      em_synpreg_bankbranch_id,
+      a_name,
+      accountno,
+      em_synpreg_c_currency_id,
+      em_synpreg_isdefault)
+      
+  select     public.get_uuid() as c_bp_bankaccount_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.created,
+     bps.updated,
+     bps.isactive,
+     bps.createdby,
+     bps.updatedby,
+     b.c_bpartner_id,
+     'GENERIC' as bankformat,
+     c.synpreg_bank_id as em_synpreg_bank_id,
+    d.synpreg_bankbranch_id as em_synpreg_branchcode,
+     bps.bank_acc_name as bank_name,
+     d.synpreg_bankbranch_id as em_synpreg_bankbranch_id,
+     bps.bank_acc_name as a_name,
+     bps.bank_acc_number as accountno,
+     coalesce(e.c_currency_id,'100') as em_synpreg_c_currency_id,
+     (CASE UPPER(is_ba_default) WHEN 'YES' THEN 'Y'
+      WHEN '1' THEN 'Y' 
+      WHEN 'DEFAULT' THEN 'Y' 
+      ELSE 'N' END) as em_synpreg_isdefault   
+  from public.idlebp_bp_source as bps
+   join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value) and b.em_synpreg_isprod='Y'
+   join public.synpreg_bank as c on  UPPER(bps.bank)= UPPER(c.bank_name)
+   join public.synpreg_bankbranch as d on UPPER(bps.branch) = UPPER(d.branch) and c.synpreg_bank_id=d.synpreg_bank_id
+   left join public.c_currency as e on upper(bps.bank_acc_curr)=upper(e.iso_code)
+   left join public.c_bp_bankaccount as f on f.c_bpartner_id=b.c_bpartner_id 
+                                     and UPPER(f.accountno)=UPPER(bps.bank_acc_number)
+  where bps.bank is not null
+     and f.accountno is null;
+  --*******************************Update Employee
+  update public.ad_user au
+  set updated=bps.updated,
+      updatedby=bps.updatedby,
+      name=initcap(concat(bps.surname,' ',bps.first_name)),
+      firstname= case when bps.first_name is not null and bps.first_name != 'a'
+                  then initcap(bps.first_name)
+                 else au.firstname end,
+      lastname= case when bps.surname is not null and bps.surname != 'a'
+                  then initcap(bps.surname)
+                 else au.lastname end,
+       em_synpreg_initials= concat(left(bps.first_name,1),left(bps.surname,1)),
+       em_synpreg_nationaliden= case when  bps.nid is not null and bps.nid!=''
+                                 then bps.nid 
+                                else au.em_synpreg_nationaliden end,       
+       em_synpreg_isprimary= case when bps.is_primary_person is not null and bps.is_primary_person!=''
+                               then (case bps.is_primary_person when '1' then 'Y'
+                             when 'YES' then 'Y'
+                      else 'N' end) 
+                 else au.em_synpreg_isprimary end,
+      phone=case when bps.cell_phone is not null and bps.cell_phone !=''
+              then bps.cell_phone 
+             else au.phone end,
+      phone2= case when bps.land_line is not null and bps.land_line!=''
+               then bps.land_line 
+              else au.phone2 end,
+      email= case when bps.email is not null and bps.email !=''
+              then bps.email 
+             else au.email end
+  from public.c_bpartner as a
+  join public.idlebp_bp_source as bps on UPPER(a.value)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+  where surname is not null
+  and au.c_bpartner_id=a.c_bpartner_id;
+  --*********************Create Employee
+  insert into public.ad_user (ad_user_id,
+  c_bpartner_id,
+  ad_client_id,
+  ad_org_id,
+  isactive,
+  created,
+  createdby,
+  updated,
+  updatedby,
+  name,
+  islocked,
+  grant_portal_access,
+  lastpasswordupdate,
+  isexpiredpassword,
+  firstname,
+  lastname,
+  em_synpreg_initials,
+  em_synpreg_nationaliden,
+  em_synpreg_isprimary,
+  phone,
+  phone2,
+  email)
+  select public.get_uuid() as ad_user_id,
+  a.c_bpartner_id,
+  a.ad_client_id,
+  a.ad_org_id,
+  a.isactive,
+  a.created,
+  a.createdby,
+  a.updated,
+  a.updatedby,
+  initcap(concat(bps.surname,' ',bps.first_name)) as name,
+  'N' as islocked,
+  'N' as grant_portal_access,
+  bps.created as lastpasswordupdate,
+  'N' as ispasswordexpired,
+  initcap(bps.first_name) as firstname,
+  initcap(bps.surname) as lastname,
+  concat(left(bps.first_name,1),left(bps.surname,1)) as em_synpreg_initials,
+  bps.nid as em_synpreg_nationaliden,
+  (case bps.is_primary_person when '1' then 'Y'
+                             when 'YES' then 'Y'
+    else 'N' end) as em_synpreg_isprimary,
+  bps.cell_phone as phone,
+  bps.land_line as phone2,
+  bps.email as email
+  from public.c_bpartner as a
+  join public.idlebp_bp_source as bps on UPPER(a.value)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+  left join public.ad_user as b on a.c_bpartner_id=b.c_bpartner_id
+  where bps.surname is not null 
+  and b.c_bpartner_id is null;
+  --*********************Update Producer reg
+  update public.synpreg_producer_reg as br
+  set updated=bps.updated,
+      updatedby=bps.updatedby,
+      dig_id_issuer= case when bps.issuer is not null and bps.issuer !=''
+                      then bps.issuer
+                     else br.dig_id_issuer end,
+      reg_date= case when bps.reg_date is not null and bps.reg_date !=''
+                 then TO_DATE(bps.reg_date,'DD/MM/YYYY')
+                else br.reg_date end,
+      reg_ref=  case when UPPER(bps.issuer) = 'TIMB' then concat('TIMB',coalesce(bps.new_reg_no,bps.reg_no))
+  else bps.reg_ref end,
+      reg_status= case when lrrs.value is not null 
+                   then lrrs.value
+                  else br.reg_status end,
+      isdefault = case when bps.is_pr_default is not null and bps.is_pr_default!=''
+                   then (case bps.is_pr_default 
+          when '1' then 'Y'
+  when 'Yes' then 'Y'
+  when 'Y' then 'Y'
+  else 'N' end)
+  else br.isdefault end,
+     dig_id_type= case when lrcd.value is not null
+                   then lrcd.value
+  else br.dig_id_type end,
+      reg_expirey= case when bps.reg_expirey_date is not null and bps.reg_expirey_date !=''
+     then TO_DATE(bps.reg_expirey_date,'DD/MM/YYYY') 
+  else br.reg_expirey end
+  from public.c_bpartner as a
+  join public.idlebp_bp_source as bps on UPPER(a.value)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Reg Status List'
+             ) as lrrs on UPPER(lrrs.name)=UPPER(bps.reg_status)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Dig. ID Card Type List'
+             ) as lrcd on UPPER(lrcd.name)=UPPER(bps.card_type)
+  where a.c_bpartner_id=br.c_bpartner_id and br.dig_id_no=coalesce(bps.new_reg_no,bps.reg_no);
+  --***************************Create Producer Reg
+  insert into public.synpreg_producer_reg (synpreg_producer_reg_id,
+  c_bpartner_id,
+  ad_client_id,
+  ad_org_id,
+  isactive,
+  created,
+  createdby,
+  updated,
+  updatedby,
+  dig_id_issuer,
+  dig_id_no,
+  reg_date,
+  reg_ref,
+  reg_status,
+  isdefault,
+  dig_id_type,
+  reg_expirey)
+  select  public.get_uuid() as synpreg_producer_reg_id,
+  a.c_bpartner_id,
+  a.ad_client_id,
+  a.ad_org_id,
+  a.isactive,
+  a.created,
+  a.createdby,
+  a.updated,
+  a.updatedby,
+  bps.issuer as dig_id_issuer,
+  coalesce(bps.new_reg_no,bps.reg_no) as dig_id_no,
+  TO_DATE(bps.reg_date,'DD/MM/YYYY') as reg_date,
+  case when UPPER(bps.issuer) = 'TIMB' then concat('TIMB',coalesce(bps.new_reg_no,bps.reg_no))
+  else bps.reg_ref end as reg_ref,
+  case when lrrs.value is not null 
+                   then lrrs.value
+                   end as reg_status,
+  case bps.is_pr_default when '1' then 'Y'
+  when 'Yes' then 'Y'
+  when 'Y' then 'Y'
+  else 'N' end as isdefault,
+  case when lrcd.value is not null
+                   then lrcd.value
+  end as dig_id_type,
+  case when bps.reg_expirey_date is not null and bps.reg_expirey_date !=''
+     then TO_DATE(bps.reg_expirey_date,'DD/MM/YYYY') else null end as reg_expirey 
+  from public.c_bpartner as a
+  join public.idlebp_bp_source as bps on UPPER(a.value)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+  left join public.synpreg_producer_reg as pr on UPPER(pr.dig_id_no)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Reg Status List'
+             ) as lrrs on UPPER(lrrs.name)=UPPER(bps.reg_status)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Dig. ID Card Type List'
+             ) as lrcd on UPPER(lrcd.name)=UPPER(bps.card_type)
+  where pr.dig_id_no is null
+  and bps.issuer is not null ;
+  --***********************Update Production Cycl
+  update public.synpreg_bp_prodcyc as pc
+  set updated=bps.updated,
+      updatedby=bps.updatedby,
+      synpreg_community_id= case when c.synpreg_community_id is not null
+                             then c.synpreg_community_id
+                            else pc.synpreg_community_id end,
+      synpreg_prod_scheme_id= case when d.synpreg_prod_scheme_id is not null 
+                                then d.synpreg_prod_scheme_id 
+                              else pc.synpreg_prod_scheme_id end,
+      c_region_id= case when e.c_region_id is not null
+                    then e.c_region_id
+                   else pc.c_region_id end,
+      prod_type= case when lrpt.value is not null
+                   then lrpt.value
+                 else pc.prod_type end,
+      c_project_id=case when f.c_project_id is not null 
+                    then f.c_project_id
+                   else pc.c_project_id end,
+      cycle_status= case when lrps.value is not null
+                     then lrps.value
+                    else pc.cycle_status end,
+      cycle_status_date= case when bps.pcstatus_date is not null and bps.pcstatus_date!=''
+                          then TO_DATE(bps.pcstatus_date,'DD/MM/YYYY')
+                         else pc.cycle_status_date end,
+      isdefault= case when bps.is_pc_default is  not null and bps.is_pc_default!=''
+                  then  case when upper(bps.is_pc_default)='YES'
+               then 'Y'
+  else 'N' end
+                 else pc.isdefault end,
+       prod_model=case when lrpm.value is not null
+                   then lrpm.value
+                  else pc.prod_model end,          
+      overseer=case when o.c_bpartner_id is not null
+                 then o.c_bpartner_id
+                else pc.overseer end,
+      supervisor=case when n.district_sup is not null
+                 then n.district_sup
+                else pc.supervisor end,
+      area_manager= case  when j.area_manager is not null
+                     then j.area_manager
+                    else pc.area_manager end,
+      field_staff_worker= case when j.field_staff_worker is not null 
+                           then j.field_staff_worker
+                          else pc.field_staff_worker end,
+      synpreg_group_id=case when j.synpreg_group_id is not null
+                        then j.synpreg_group_id
+                       else pc.synpreg_group_id end,
+  synpreg_district_id=case when n.synpreg_district_id is not null
+                        then n.synpreg_district_id
+                       else pc.synpreg_district_id end
+  from public.idlebp_bp_source as bps
+  join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value)
+   join public.c_project as f on  UPPER(bps.production_cycle)=UPPER(f.name)
+  left join public.synpreg_group as j on UPPER(j.group_name)=UPPER(bps.community_group)             --Group/ Field staff worker
+  left join public.synpreg_community as c on c.synpreg_community_id=j.synpreg_community_id   --Community/ area manager
+  left join public.synpreg_district as n on n.synpreg_district_id=c.synpreg_district_id      --District/ supervisor
+  left join public.c_region as e on e.c_region_id=n.c_region_id                              --Province
+  left join public.synpreg_prod_scheme as d on UPPER(bps.production_scheme)=UPPER(d.prod_scheme)
+   join public.synpreg_bp_prodcyc as l on l.c_bpartner_id=b.c_bpartner_id and l.c_project_id=f.c_project_id
+    left join (select c_bpartner_id 
+              from public.c_bpartner 
+              where EM_Synpreg_Isover='Y' 
+              limit 1) as o on 1=1                                                    --Overseer
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Production Type List'
+             ) as lrpt on UPPER(lrpt.name)=UPPER(bps.producer_type)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'PC Status List'
+             ) as lrps on UPPER(lrps.name)=UPPER(bps.pcstatus)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Production Model List'
+             ) as lrpm on UPPER(lrpm.name)=UPPER(bps.producer_model)
+
+  where  l.synpreg_bp_prodcyc_id=pc.synpreg_bp_prodcyc_id;
+  --********************************Create Production Cycl
+  insert into public.synpreg_bp_prodcyc
+             (synpreg_bp_prodcyc_id,
+      ad_client_id,
+      ad_org_id,
+      created,
+      updated,
+      isactive,
+      createdby,
+      updatedby,
+      c_bpartner_id,
+      synpreg_community_id,
+      synpreg_prod_scheme_id,
+      c_region_id,
+      prod_type,
+  c_project_id,
+  cycle_status,
+  cycle_status_date,
+  isdefault,
+  prod_model,
+  overseer,
+  supervisor,
+  area_manager,
+  field_staff_worker,
+  synpreg_group_id,
+  synpreg_district_id)
+  select public.get_uuid() as synpreg_bp_prodcyc_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.created,
+     bps.updated,
+     bps.isactive,
+     bps.createdby,
+     bps.updatedby,
+     b.c_bpartner_id,
+     c.synpreg_community_id,
+     d.synpreg_prod_scheme_id,
+     e.c_region_id  as c_region_id,
+     lrpt.value as prod_type,
+     f.c_project_id,
+     lrps.value as cycle_status,
+     case when bps.pcstatus_date is not null then TO_DATE(bps.pcstatus_date,'DD/MM/YYYY') else null end as cycle_status_date, 
+     case when bps.is_pc_default is  not null and bps.is_pc_default!=''
+                  then  case when upper(bps.is_pc_default)='YES'
+               then 'Y'
+  else 'N' end
+                 else 'N' end as isdefault,
+     lrpm.value as prod_model,
+     o.c_bpartner_id as overseer,
+     n.district_sup as supervisor,
+     c.area_manager,
+     j.field_staff_worker,
+     j.synpreg_group_id,
+     n.synpreg_district_id
+
+  from public.idlebp_bp_source as bps
+  join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value)
+  join public.c_project as f on  UPPER(bps.production_cycle)=UPPER(f.name)
+  inner join public.synpreg_group as j on upper(j.group_name)=upper(bps.community_group)              --Group/ Field staff worker
+  left join public.synpreg_community as c on c.synpreg_community_id=j.synpreg_community_id   --Community/ area manager
+  left join public.synpreg_district as n on n.synpreg_district_id=c.synpreg_district_id      --District/ supervisor
+  left join public.c_region as e on e.c_region_id=n.c_region_id                              --Province
+  left join public.synpreg_prod_scheme as d on UPPER(bps.production_scheme)=UPPER(d.prod_scheme)
+  left join (select c_bpartner_id 
+              from public.c_bpartner 
+              where EM_Synpreg_Isover='Y' 
+              limit 1) as o on 1=1                                                    --Overseer
+  left join public.synpreg_bp_prodcyc as l on l.c_bpartner_id=b.c_bpartner_id and l.c_project_id=f.c_project_id
+  inner join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Production Type List'
+             ) as lrpt on UPPER(lrpt.name)=UPPER(bps.producer_type)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'PC Status List'
+             ) as lrps on UPPER(lrps.name)=UPPER(bps.pcstatus)
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Production Model List'
+             ) as lrpm on UPPER(lrpm.name)=UPPER(bps.producer_model)
+  where bps.production_cycle is not null
+    and l.c_project_id is null;
+   --*********************************Update Trading Acc
+  update public.synint_bp_tradacc as ta
+  set updated=bps.updated,
+      updatedby=bps.updatedby,
+      user1_id= case when c.user1_id is not null 
+                 then c.user1_id
+                else ta.user1_id end,
+      isdefault= case when bps.is_ta_default is not null and bps.is_ta_default!=''
+                  then case when  upper(bps.is_ta_default) ='YES'
+            then 'Y'
+    else 'N' end
+  else 'N' end,
+      status= case when  lrta.value is not null 
+                then lrta.value
+              else ta.status end,
+       status_date= case when bps.tastatus_date is not null and bps.tastatus_date!=''
+                     then TO_DATE(bps.tastatus_date ,'DD/MM/YYYY')
+                    else ta.status_date end 
+  from public.idlebp_bp_source as bps
+  join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value)
+  left join public.user1 as c on UPPER(bps.trading_account)=UPPER(c.name)
+  left join (  
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Trad Acc List'
+             ) as lrta on UPPER(lrta.name)=UPPER(bps.tastatus)
+  where c.user1_id=ta.user1_id and ta.c_bpartner_id=b.c_bpartner_id;
+  --*******************************Create Trading acc
+  insert into public.synint_bp_tradacc
+  ( synint_bp_tradacc_id,
+      ad_client_id,
+      ad_org_id,
+      created,
+      updated,
+      isactive,
+      createdby,
+      updatedby,
+      c_bpartner_id,
+      user1_id,
+      isdefault,
+      user2_id,
+      status,
+              status_date)
+              
+  select public.get_uuid() as synint_bp_tradacc_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.created,
+     bps.updated,
+     bps.isactive,
+     bps.createdby,
+     bps.updatedby,
+     b.c_bpartner_id,
+     c.user1_id,
+     'Y' as isdefault,
+     udf2.user2_id,
+     lrta.value as status,
+     case when bps.tastatus_date is not null then TO_DATE(bps.tastatus_date,'DD/MM/YYYY')
+      else null end as status_date
+  from public.idlebp_bp_source as bps
+  join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value)
+  inner join public.user1 as c on  UPPER(bps.trading_account)=UPPER(c.name)
+  left join public.synint_bp_tradacc as d on d.c_bpartner_id=b.c_bpartner_id and d.user1_id=c.user1_id
+  join (select user2_id
+          from public.user2
+         where value='Virginia Tobacco Sales'
+         limit 1) as udf2 on 1=1
+  left join (
+         select b.name,b.value
+  from AD_Reference as a
+  join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+  where a.name = 'Trad Acc List'
+             ) as lrta on UPPER(lrta.name)=UPPER(bps.tastatus)
+  where d.user1_id is null;
+
+  --***********create location
+  insert into public.c_location 
+        ( c_location_id,
+          ad_client_id,
+          ad_org_id,
+          isactive,
+          created,
+          createdby,
+          updated,
+          updatedby,
+          c_country_id,
+           address1,
+           address2,
+           city)
+  select public.get_uuid() as c_location_id,
+         max(bps.ad_client_id) as ad_client_id,
+         max(bps.ad_org_id) as ad_org_id,
+         'Y' as isactive,
+         max(bps.created) as created,
+         max(bps.createdby) as createdby,
+         max(bps.updated) as updated,
+         max(bps.updatedby) as updatedby,
+         '348' as c_country_id,
+          j.group_name as address1,
+          max(c.community) as address2,
+          max(n.district) as city
+  from public.idlebp_bp_source as bps
+    join public.synpreg_group as j on upper(j.group_name)=upper(bps.community_group)              --Group/ Field staff worker
+  left join public.synpreg_community as c on c.synpreg_community_id=j.synpreg_community_id   --Community/ area manager
+  left join public.synpreg_district as n on n.synpreg_district_id=c.synpreg_district_id      --District/ supervisor
+  left join public.c_location as k on k.address1= j.group_name
+  where k.address1 is null
+  group by  j.group_name;
+
+  --***** create address
+  insert into public.c_bpartner_location 
+        ( c_bpartner_location_id,
+         ad_client_id,
+         ad_org_id,
+         isactive,
+         created,
+         createdby,
+         updated,
+         updatedby,
+         name,
+         isbillto,
+         isshipto,
+         ispayfrom,
+         isremitto,
+         c_bpartner_id,
+         istaxlocation,
+          c_location_id)
+  select public.get_uuid() as c_bpartner_location_id,
+         bps.ad_client_id,
+         bps.ad_org_id,
+         bps.isactive,
+         bps.created,
+         bps.createdby,
+         bps.updated,
+         bps.updatedby,
+         bps.bp_name as name,
+         'Y' as isbillto,
+         'Y' as isshipto,
+         'Y' as ispayfrom,
+         'Y' as isremitto,
+         bp.c_bpartner_id,
+         'Y' istaxlocation,
+         k.c_location_id
+       from public.idlebp_bp_source as bps
+       join public.c_bpartner as bp on UPPER(bp.value)=UPPER(coalesce(bps.new_reg_no,bps.reg_no))
+        join public.synpreg_group as j on upper(j.group_name)=upper(bps.community_group)
+        join public.c_location as k on k.address1= j.group_name
+        left join public.c_bpartner_location as lc on bp.c_bpartner_id=lc.c_bpartner_id
+       where lc.c_bpartner_id is null;
+   
+   --***** Setting Default for Production Cycle
+   update synpreg_bp_prodcyc
+set isdefault='N'
+where synpreg_bp_prodcyc_id in
+(select synpreg_bp_prodcyc_id
+ from 
+(select pc.c_bpartner_id,pc.synpreg_bp_prodcyc_id,cp.name
+   , row_number() over(partition by pc.c_bpartner_id order by pc.c_bpartner_id, pc.created desc) as rn
+from synpreg_bp_prodcyc as pc
+join c_project as cp on pc.c_project_id=cp.c_project_id
+where isdefault='Y') as andrew
+ where rn>1);
+ 
+-- PERFORM IDLEBP_FIXBANK();
+ --***** Setting Default for Bank Account
+ update C_BP_BankAccount
+set em_synpreg_isdefault='N'
+where C_BP_BankAccount_id in
+(select C_BP_BankAccount_id
+ from 
+(select bank_acc.c_bpartner_id,bank_acc.C_BP_BankAccount_id
+   , row_number() over(partition by bank_acc.c_bpartner_id order by bank_acc.c_bpartner_id, bank_acc.created desc) as rn
+from C_BP_BankAccount as bank_acc
+where em_synpreg_isdefault='Y') as andrew
+ where rn>1);
+   
+  IDLEBP_VALIDATEBP();
+
+end case;  
+end
+]]></body>
+    </function>
+  </database>

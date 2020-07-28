@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION IDLEBP_FINISHESTI">
+    <function name="IDLEBP_FINISHESTI" type="NULL">
+      <body><![CDATA[declare
+begin
+-- validate business partner
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' RegNo')
+where  upper(es.reg_no) not in(select distinct upper(value) from c_bpartner where em_synpreg_isprod='Y')
+and  (items_to_check is null or items_to_check not like '%RegNo%')
+and cast(created as date) =cast(now() as date);
+
+-- validate production cylce
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' ProdCyc')
+where upper(es.production_cycle) not in(select distinct upper(name) from c_project)
+and (items_to_check is null or items_to_check not like '%ProdCyc%')
+and cast(created as date) =cast(now() as date);
+
+-- Validate Tender
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' Tender')
+where upper(es.tender) not in(select distinct upper(iso_code) from c_currency)
+and (items_to_check is null or items_to_check not like '%Tender%') 
+and cast(created as date) =cast(now() as date);
+
+-- Validate Scale
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' Scale')
+where (scale is not null
+or scale!='')
+and to_number(scale) is null
+and (items_to_check is null or items_to_check not like '%Scale%')
+and cast(created as date) =cast(now() as date);
+
+-- Validate Unit Yield
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' UnitYield')
+where (unit_yield is not null
+or unit_yield!='')
+and  to_number(unit_yield) is null
+and (items_to_check is null or items_to_check not like '%UnitYield%')
+and cast(created as date) =cast(now() as date);
+
+-- Validate Gross Yield
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' GrossYield')
+where (gross_yield is not null
+or gross_yield!='')
+and to_number(gross_yield) is null
+and (items_to_check is null or items_to_check not like '%GrossYield%')
+and cast(created as date) =cast(now() as date);
+
+-- Validate Price
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' Price')
+where (estimated_price is not null
+or estimated_price!='')
+and to_number(estimated_price) is null
+and (items_to_check is null or items_to_check not like '%Price%')
+and cast(created as date) =cast(now() as date);
+
+-- Validate Estimation Date
+update idlebp_esti_source as es
+set isvalid='No',items_to_check=concat(items_to_check,' Date')
+where not idlebp_is_date(estimation_date)
+and (items_to_check is null or items_to_check not like '%Date%') 
+and cast(created as date) =cast(now() as date);
+
+-- update contracted scale
+update synpreg_bp_prodcyc as pc
+set act_scale= case when lower(es.estimate_status)='actual' then cast(es.scale as NUMBER) else act_scale end,
+    con_scale=case when lower(es.estimate_status)<>'actual' then cast(es.scale as NUMBER) else con_scale end
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id
+ and to_number(es.scale) is not null
+ and cast(es.scale as NUMBER)!=0;
+
+--update estimated scale
+update synpreg_bp_prodcyc as pc
+set est_scale= cast(es.scale as NUMBER) 
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id
+ and to_number(es.scale) is not null
+ and cast(es.scale as NUMBER)!=0;
+
+--update estimated unit yield per scale
+ update synpreg_bp_prodcyc as pc
+set EST_Yield_Per_Scale_U=cast(es.unit_yield as NUMBER)
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id
+ and to_number(es.unit_yield) is not null
+ and cast(es.unit_yield as NUMBER)!=0;
+
+--update estimated gross yield
+  update synpreg_bp_prodcyc as pc
+set est_gross_yield= cast(es.gross_yield as NUMBER)
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id
+ and to_number(es.gross_yield) is not null
+ and cast(es.gross_yield as NUMBER)!=0;
+ 
+ -- update estimated price
+ update synpreg_bp_prodcyc as pc
+set est_price=cast(es.estimated_price as NUMBER)
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id
+ and to_number(es.estimated_price) is not null
+ and cast(es.estimated_price as NUMBER)!=0;
+ 
+  -- update estimate tender
+ update synpreg_bp_prodcyc as pc
+set est_currency= cr.c_currency_id 
+from idlebp_esti_source as es
+join c_bpartner as bp on upper(es.reg_no)=upper(bp.value)
+join c_project as pr on upper(pr.name)=upper(es.production_cycle)
+join c_currency as cr on upper(es.tender)=upper(cr.iso_code)
+where pc.c_bpartner_id=bp.c_bpartner_id and bp.em_synpreg_isprod='Y'
+ and pc.c_project_id=pr.c_project_id;
+end
+]]></body>
+    </function>
+  </database>

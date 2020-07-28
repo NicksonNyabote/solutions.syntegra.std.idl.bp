@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION IDLEBP_VALIDATEBP">
+    <function name="IDLEBP_VALIDATEBP" type="NULL">
+      <body><![CDATA[declare
+begin
+-- Reset validation
+update idlebp_bp_source
+set items_to_check=null, isvalid = 'Yes';
+
+-- validate reg_no
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' A')
+where (length(reg_no)<5 or length(reg_no)>9);
+
+-- validate new_reg_no
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' B')
+where length(new_reg_no)>9;
+
+-- validate reg_ref
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' G')
+where length(reg_ref)>40;
+
+-- validate bp name
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' K')
+where length(bp_name)>60;
+
+-- validate notes
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' O')
+where length(notes)>60;
+
+-- validate custom 1
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' Q')
+where length(custom_field_1)>60;
+
+-- validate custom 2
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' R')
+where length(custom_field_2)>60;
+
+-- validate custom 3
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' S')
+where length(custom_field_3)>60;
+
+-- validate bank acc name
+update idlebp_bp_source 
+set items_to_check=concat(items_to_check,' AV')
+where length(bank_acc_name)>60;
+
+--validate bp_status
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' M')
+where UPPER(bps.bp_status) not in( select upper(b.name)
+									from AD_Reference as a
+									join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+									where a.name = 'Client Status List');
+
+--validate bp flag
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' P')
+where UPPER(bps.bp_flag) not in(
+								select upper(b.name)
+								from AD_Reference as a
+								join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+								where a.name = 'SYNPREG FLAG REF'
+                               )
+and coalesce(bps.bp_flag,'')!='';
+
+--validate banck acc currency
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AX')
+where upper(bps.bank_acc_curr) not in(
+                              select upper(iso_code) from c_currency 
+                               );
+
+--validate is pr default
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' I')
+where upper(coalesce(is_pr_default,'')) not in ('YES','NO','');
+
+--validate is is producer
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' J')
+where upper(coalesce(bp_type,'')) not in ('YES','NO','');
+
+--validate is pri person
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' Y')
+where upper(coalesce(is_primary_person,'')) not in ('YES','NO','');
+
+--validate is pc def
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AC')
+where upper(coalesce(is_pc_default,'')) not in ('YES','NO','');
+
+--validate is ta def
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AR')
+where upper(coalesce(is_ta_default,'')) not in ('YES','NO','');
+
+--validate is ba def
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AY')
+where upper(coalesce(is_ba_default,'')) not in ('YES','NO','');
+
+--validatenational id
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' V')
+where not upper(nid) ~ '[0-9]{2}-[0-9]+[A-Z]{1}[0-9]{2}';
+
+--validate gender
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' X')
+where upper(coalesce(gender,'')) not in ('MALE','FEMALE','');
+
+-- validate production cycle-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' Z')
+where upper(bps.production_cycle) not in (
+                                select upper(name) from c_project
+                      );
+
+-- validate Business Partner>Group-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' L')
+where upper(bps.bp_category) not in (select distinct upper(name)
+from c_bp_group);
+
+-- validate production cycle>Group-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AG')
+where upper(bps.community_group) not in (select distinct upper(group_name)
+from synpreg_group);
+
+-- validate production cycle>Production Scheme-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AF')
+where upper(bps.production_scheme) not in(
+                              select upper(prod_scheme) from synpreg_prod_scheme
+                           );
+
+-- validate production cycle>Production Type List-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AE')
+where upper(bps.producer_type) not in(
+                          select upper(b.name)
+							from AD_Reference as a
+							join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+							where a.name = 'Production Type List'
+                        );
+
+-- validate production cycle>PC Status List-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AA')
+where upper(bps.pcstatus) not in(
+                               select upper(b.name)
+	                             from AD_Reference as a
+								join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+								where a.name = 'PC Status List'
+                               );
+
+-- validate production cycle>Production Model List-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AD')
+where upper(bps.producer_model) not in(
+								   select upper(b.name)
+									from AD_Reference as a
+									join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+									where a.name = 'Production Model List');
+
+-- validate Trading Account--------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AP')
+where upper(bps.trading_account) not in(select upper(name)
+									    from user1);
+
+-- validate producer reg>Reg Status-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' E')
+where upper(bps.reg_status) not in (  select upper(b.name)
+									from AD_Reference as a
+									join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+									where a.name = 'Reg Status List');
+
+-- validate producer reg>Card Type-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' D')
+where upper(bps.card_type) not in( select upper(b.name)
+									from AD_Reference as a
+									join AD_Ref_List as b on a.ad_reference_id=b.ad_reference_id
+									where a.name = 'Dig. ID Card Type List');
+
+-- validate Bank-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AS')
+where upper(bps.bank) not in (select upper(bank_name)
+							 from synpreg_bank);
+
+-- validate Bank Branch-------------------
+update idlebp_bp_source as bps
+set items_to_check=concat(items_to_check,' AT')
+where upper(bps.branch) not in(select upper(branch)
+							  from synpreg_bankbranch);
+
+
+update idlebp_bp_source
+set isvalid = case when items_to_check is null then 'Yes'
+					else 'No'
+						end;
+end
+]]></body>
+    </function>
+  </database>

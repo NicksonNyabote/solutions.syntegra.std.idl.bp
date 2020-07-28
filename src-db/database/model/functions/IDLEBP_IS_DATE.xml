@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION IDLEBP_IS_DATE">
+    <function name="IDLEBP_IS_DATE" type="VARCHAR">
+      <parameter name="s" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[begin
+  perform s::date;
+  return true;
+exception when others then
+  return false;
+end
+]]></body>
+    </function>
+  </database>

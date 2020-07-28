@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION IDLEBP_FIXBANK">
+    <function name="IDLEBP_FIXBANK" type="NULL">
+      <body><![CDATA[declare
+begin
+
+--****** Create USD acc if does not exist
+insert into public.c_bp_bankaccount
+  (           c_bp_bankaccount_id,
+      ad_client_id,
+      ad_org_id,
+      created,
+      updated,
+      isactive,
+      createdby,
+      updatedby,
+      c_bpartner_id,
+      bankformat,
+      em_synpreg_bank_id,
+    em_synpreg_branchcode,
+      bank_name,
+      em_synpreg_bankbranch_id,
+      a_name,
+      accountno,
+      em_synpreg_c_currency_id,
+      em_synpreg_isdefault)
+  select     public.get_uuid() as c_bp_bankaccount_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.created,
+     bps.updated,
+     bps.isactive,
+     bps.createdby,
+     bps.updatedby,
+     b.c_bpartner_id,
+     'GENERIC' as bankformat,
+     c.synpreg_bank_id as em_synpreg_bank_id,
+    d.synpreg_bankbranch_id as em_synpreg_branchcode,
+     'NoBank' as bank_name,
+     d.synpreg_bankbranch_id as em_synpreg_bankbranch_id,
+     'NoAcc' as a_name,
+     '000000000' as accountno,
+     coalesce(e.c_currency_id,'100') as em_synpreg_c_currency_id,
+     'N' as em_synpreg_isdefault   
+  from public.idlebp_bp_source as bps
+   join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value) and b.em_synpreg_isprod='Y'
+   join public.synpreg_bank as c on  c.bank_name='No Bank'
+   join public.synpreg_bankbranch as d on  d.branch='No Branch'
+   join public.c_currency as e on e.iso_code='USD'
+   left join public.c_bp_bankaccount as f on f.c_bpartner_id=b.c_bpartner_id and f.EM_Synpreg_C_Currency_ID=e.c_currency_id
+  where f.accountno is null
+  and b.ad_client_id='6FF4CBBC087E4A61A83232775A3B17CE';
+  
+  --***** Create ZWL account if does not exist
+  insert into public.c_bp_bankaccount
+  (           c_bp_bankaccount_id,
+      ad_client_id,
+      ad_org_id,
+      created,
+      updated,
+      isactive,
+      createdby,
+      updatedby,
+      c_bpartner_id,
+      bankformat,
+      em_synpreg_bank_id,
+    em_synpreg_branchcode,
+      bank_name,
+      em_synpreg_bankbranch_id,
+      a_name,
+      accountno,
+      em_synpreg_c_currency_id,
+      em_synpreg_isdefault)
+  select     public.get_uuid() as c_bp_bankaccount_id,
+     bps.ad_client_id,
+     bps.ad_org_id,
+     bps.created,
+     bps.updated,
+     bps.isactive,
+     bps.createdby,
+     bps.updatedby,
+     b.c_bpartner_id,
+     'GENERIC' as bankformat,
+     c.synpreg_bank_id as em_synpreg_bank_id,
+    d.synpreg_bankbranch_id as em_synpreg_branchcode,
+     'NoBank' as bank_name,
+     d.synpreg_bankbranch_id as em_synpreg_bankbranch_id,
+     'NoAcc' as a_name,
+     '000000000' as accountno,
+     coalesce(e.c_currency_id,'B3CDBCFFC3514535BA9396CBA0CD909D') as em_synpreg_c_currency_id,
+     'Y' as em_synpreg_isdefault   
+  from public.idlebp_bp_source as bps
+   join public.c_bpartner as b on UPPER(coalesce(bps.new_reg_no,bps.reg_no))=UPPER(b.value) and b.em_synpreg_isprod='Y'
+   join public.synpreg_bank as c on  c.bank_name='No Bank'
+   join public.synpreg_bankbranch as d on  d.branch='No Branch'
+   join public.c_currency as e on e.iso_code='ZWL'
+   left join public.c_bp_bankaccount as f on f.c_bpartner_id=b.c_bpartner_id and f.EM_Synpreg_C_Currency_ID=e.c_currency_id
+  where f.accountno is null
+  and b.ad_client_id='6FF4CBBC087E4A61A83232775A3B17CE';
+--*****Unset usd accounts as default	
+update public.c_bp_bankaccount  as ba
+set em_synpreg_isdefault='N'
+from  public.c_bpartner as bp
+where ba.c_bpartner_id=bp.c_bpartner_id
+  and ba.em_synpreg_isdefault='Y'
+  and ba.em_synpreg_c_currency_id<>(select c_currency_id from c_currency where iso_code='ZWL' limit 1)
+  and bp.em_synpreg_isprod='Y'
+  and bp.ad_client_id='6FF4CBBC087E4A61A83232775A3B17CE';
+  
+--******Set ZWL as default acounts
+ update public.c_bp_bankaccount  as ba
+set em_synpreg_isdefault='Y'
+from  public.c_bpartner as bp
+where ba.c_bpartner_id=bp.c_bpartner_id
+  and ba.em_synpreg_isdefault='Y'
+  and ba.em_synpreg_c_currency_id=(select c_currency_id from c_currency where iso_code='ZWL' limit 1)
+  and bp.em_synpreg_isprod='Y'
+  and bp.ad_client_id='6FF4CBBC087E4A61A83232775A3B17CE';
+
+end
+]]></body>
+    </function>
+  </database>
